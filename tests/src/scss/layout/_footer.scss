@@ -1,0 +1,30 @@
+// Footer Styles
+$footer-background-color: $background-color;
+$footer-text-color: $primary-color;
+$footer-link-color: #ff6347;
+$footer-link-hover-color: lighten($footer-link-color, 10%);
+$footer-padding: 20px;
+$footer-text-size: 14px;
+
+footer {
+  background-color: $footer-background-color;
+  color: $footer-text-color;
+  padding: $footer-padding;
+  text-align: center;
+  border-radius: 5px;
+
+  p {
+    margin: 0;
+    font-size: $footer-text-size;
+
+    a {
+      color: $footer-link-color;
+      text-decoration: none;
+
+      &:hover {
+        color: $footer-link-hover-color;
+        text-decoration: underline;
+      }
+    }
+  }
+}

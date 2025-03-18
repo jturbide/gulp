@@ -1,0 +1,31 @@
+{
+  "name": "zoey-adventure",
+  "version": "1.0.0",
+  "description": "Zoey's Adventure",
+  "author": "Zoey",
+  "license": "ISC",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "gulp build",
+    "watch": "gulp watch",
+    "serve": "gulp serve"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "> 2%"
+  ],
+  "devDependencies": {
+    "@types/bootstrap": "^5.2.10",
+    "@types/jquery": "^3.5.30",
+    "@types/slick-carousel": "^1.6.40",
+    "bootstrap": "^5.3.3",
+    "jquery": "^3.7.1",
+    "slick-carousel": "^1.8.1"
+  },
+  "dependencies": {
+    "jturbide-gulp": "file:.yalc/jturbide-gulp"
+  }
+}
