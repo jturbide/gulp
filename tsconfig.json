@@ -7,6 +7,11 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/typings",
+      "./src/shims",
+    ],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -21,7 +26,7 @@
     "noUnusedLocals": false, // true
     "noUnusedParameters": true, // true
     "noFallthroughCasesInSwitch": true,
-    "experimentalDecorators": true,
+    "experimentalDecorators": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"],
