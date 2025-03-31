@@ -5,13 +5,14 @@ import browserSync, {BrowserSyncInstance} from 'browser-sync'
 import {extname} from 'path'
 import Vinyl from 'vinyl'
 import http2 from 'http2'
-import {deleteSync} from 'del';
+import {deleteSync} from 'del'
 import cssnano from 'cssnano'
 import minimist from 'minimist'
+import zlib from 'zlib'
 
 // Gulp
 import gulp, {TaskFunction, TaskFunctionCallback} from 'gulp'
-import gulpDartSass from 'gulp-dart-sass'
+import dartSass from 'gulp-dart-sass'
 import postcss from 'gulp-postcss'
 import imagemin, {gifsicle, mozjpeg, optipng, svgo} from 'gulp-imagemin'
 import depOrder from 'gulp-deporder'
@@ -26,10 +27,17 @@ import uglify from 'gulp-uglify'
 import htmlMin from 'gulp-htmlmin'
 import sortMediaQueries from 'postcss-sort-media-queries'
 import gulpIf from 'gulp-if'
-import gulpDebug from 'gulp-debug'
+import debug from 'gulp-debug'
 import sourcemaps from 'gulp-sourcemaps'
-import gulpHeader from 'gulp-header'
-import gulpChanged from 'gulp-changed'
+import header from 'gulp-header'
+import changed from 'gulp-changed'
+import brotli from 'gulp-brotli'
+import gzip from 'gulp-gzip'
+import newer from 'gulp-newer'
+import webp from 'gulp-webp'
+import avif from 'gulp-avif'
+import plumber from 'gulp-plumber'
+import mergeStream from 'merge-stream'
 
 export class Gulp
 {
@@ -46,6 +54,7 @@ export class Gulp
       image: this.image,
       view: this.view,
       copy: this.copy,
+      compress: this.compress,
     },
     public streams: StreamsInterface = {
       sass: [],
@@ -53,29 +62,36 @@ export class Gulp
       image: [],
       view: [],
       copy: [],
+      compress: [],
     },
   ) {
     this.prepareTasks()
+  }
+  
+  handleError(error: any) {
+    console.error('Gulp Image Task Error:', error)
   }
   
   deleteDest(config: SrcDestInterface) {
     if (this.argv.delete === 'false' && config.verbose)
       console.log('Delete is disabled')
     
-    if (config.delete && this.argv.delete !== "false") {
+    if (config.delete && this.argv.delete !== 'false') {
       let path: null | string | string[] = null
       
       if (Array.isArray(config.delete) || typeof config.delete === 'string') {
         path = config.delete
-      } else if (typeof config.dest !== 'function') {
+      }
+      else if (typeof config.dest !== 'function') {
         path = config.dest
       }
       
       if (path) {
-        const options = config.deleteOptions || {};
+        const options = config.deleteOptions || {}
         if (config.verbose) console.log('Deleting:', path, 'options:', options)
-        return deleteSync(path, options);
-      } else {
+        return deleteSync(path, options)
+      }
+      else {
         if (config.verbose) console.log('Nothing to delete')
       }
     }
@@ -101,12 +117,13 @@ export class Gulp
       if (config.sourceMaps?.enable) stream = stream.pipe(sourcemaps.init(config.sourceMaps?.initOptions || {}))
       
       // display processing sass
-      if (config.verbose) stream = stream.pipe(gulpDebug({title: 'Processing SASS:'}))
+      if (config.verbose) stream = stream.pipe(debug({title: '[SASS]'}))
       
-      if (config.header) stream = stream.pipe(gulpHeader(config.header))
+      // append header to every sass files (variables etc.)
+      if (config.header) stream = stream.pipe(header(config.header))
       
       // execute dart sass
-      stream = stream.pipe(gulpDartSass.sync(config.compilerOptions || {}).on('error', gulpDartSass.logError))
+      stream = stream.pipe(dartSass.sync(config.compilerOptions || {}).on('error', dartSass.logError))
       
       // automatically add prefixes
       if (config.autoprefixer) this.postCss.push(autoprefixer())
@@ -137,9 +154,24 @@ export class Gulp
       // write source maps
       if (config.sourceMaps?.enable) stream = stream.pipe(sourcemaps.write(config.sourceMaps?.writePath || '.', config.sourceMaps?.writeOptions || {}))
       
+      // set gulp dest
       stream = stream.pipe(gulp.dest(config.dest, config.destOptions || {}))
       
-      this.streams.sass.push(stream)
+      // compress result using brotli
+      if (config.brotli) {
+        if (config.verbose) stream = stream.pipe(debug({title: '[Brotli]'}))
+        stream = stream.pipe(brotli.compress(config.brotliOptions || {}))
+        stream = stream.pipe(gulp.dest(config.dest, config.destOptions || {}))
+      }
+      
+      // compress result using gzip
+      if (config.gzip) {
+        if (config.verbose) stream = stream.pipe(debug({title: '[Gzip]'}))
+        stream = stream.pipe(gzip(config.gzipOptions || {}))
+        stream = stream.pipe(gulp.dest(config.dest, config.destOptions || {}))
+      }
+      
+      this.streams.sass.push([stream])
       
       cb()
     }
@@ -164,7 +196,7 @@ export class Gulp
       if (config.sourceMaps?.enable) stream = stream.pipe(sourcemaps.init(config.sourceMaps?.initOptions || {}))
       
       // display processing js
-      if (config.verbose) stream = stream.pipe(gulpDebug({title: 'Processing JS:'}))
+      if (config.verbose) stream = stream.pipe(debug({title: '[JS]'}))
       
       // strip debug functions from the js
       if (config.stripDebug) stream = stream.pipe(stripDebug())
@@ -198,9 +230,7 @@ export class Gulp
       }
       
       // rename
-      if (config.rename) {
-        stream = stream.pipe(rename(config.renameOptions || {}))
-      }
+      if (config.rename) stream = stream.pipe(rename(config.renameOptions || {}))
       
       // write source maps
       if (config.sourceMaps?.enable) stream = stream.pipe(sourcemaps.write(config.sourceMaps?.writePath || '.', config.sourceMaps?.writeOptions || {}))
@@ -208,8 +238,22 @@ export class Gulp
       // set gulp dest
       stream = stream.pipe(gulp.dest(config.dest, config.destOptions || {}))
       
+      // compress result using brotli
+      if (config.brotli) {
+        if (config.verbose) stream = stream.pipe(debug({title: '[Brotli]'}))
+        stream = stream.pipe(brotli.compress(config.brotliOptions || {}))
+        stream = stream.pipe(gulp.dest(config.dest, config.destOptions || {}))
+      }
+      
+      // compress result using gzip
+      if (config.brotli) {
+        if (config.verbose) stream = stream.pipe(debug({title: '[Gzip]'}))
+        stream = stream.pipe(gzip(config.gzipOptions || {}))
+        stream = stream.pipe(gulp.dest(config.dest, config.destOptions || {}))
+      }
+      
       // keep js stream
-      this.streams.js.push(stream)
+      this.streams.js.push([stream])
       
       // gulp callback
       cb()
@@ -227,44 +271,64 @@ export class Gulp
     this.injectGlobal(config, 'image')
     
     return (cb: TaskFunctionCallback) => {
-      // clean dest first
       this.deleteDest(config)
       
-      // prepare options
-      const srcOptions = config.srcOptions || {}
+      const streams: Array<NodeJS.ReadWriteStream> = []
+      const srcOptions = config.srcOptions || {encoding: false}
       
-      // @todo add gulp newer to check if image is newer before processing
+      const processImage = (pipeline: NodeJS.ReadWriteStream) => {
+        if (config.newer) pipeline = pipeline.pipe(newer(config.newerOptions || {dest: config.dest.toString()}))
+        if (config.changed) pipeline = pipeline.pipe(changed(config.dest.toString(), config.changedOptions || {}))
+        return pipeline
+      }
       
-      // force encoding to false if not defined
-      if (!srcOptions.encoding) srcOptions.encoding = false
+      // Original Images
+      let baseStream = processImage(gulp.src(config.src, srcOptions))
+        .pipe(plumber({errorHandler: this.handleError}))
       
-      // set gulp source
-      let stream = gulp.src(config.src, srcOptions)
-
-      // check changed
-      if (config.changed) stream = stream.pipe(gulpChanged(config.dest.toString(), config.changedOptions || {}))
+      if (config.verbose)
+        baseStream = baseStream.pipe(debug({title: '[Image]'}))
       
-      // display processing image
-      if (config.verbose) stream = stream.pipe(gulpDebug({title: 'Processing Image:'}))
-
-      // prepare imagemin optimizers & options
-      const optimizers = config.imageMinOptimizers || [gifsicle(), mozjpeg(), optipng(), svgo()]
-      const options = config.imageMinOptions || {}
+      if (config.imagemin) {
+        const optimizers = config.imageminOptimizers || [gifsicle(), mozjpeg(), optipng(), svgo()]
+        const imageMinOptions = config.imageminOptions || {}
+        if (config.verbose) imageMinOptions.verbose = true
+        baseStream = baseStream.pipe(gulpIf(this.isValidImage, imagemin(optimizers, imageMinOptions)))
+      }
       
-      // if debug is enabled force imagemin verbose
-      if (config.verbose) options.verbose = true
-
-      // execute imagemin
-      if (config.minify) stream = stream.pipe(gulpIf(this.isValidImage, imagemin(optimizers, options)))
-
-      // set gulp dest
-      stream = stream.pipe(gulp.dest(config.dest, config.destOptions || {}))
+      baseStream = baseStream.pipe(gulp.dest(config.dest))
+      streams.push(baseStream)
       
-      // keep the stream
-      this.streams.image.push(stream)
+      // AVIF Images
+      if (config.avif) {
+        let avifStream = processImage(gulp.src(config.src, srcOptions))
+          .pipe(plumber({errorHandler: this.handleError}))
+          .pipe(avif(config.avifOptions || {}))
+        
+        if (config.verbose)
+          avifStream = avifStream.pipe(debug({title: '[Avif]'}))
+        
+        avifStream.pipe(gulp.dest(config.dest))
+        streams.push(avifStream)
+      }
       
-      // gulp callback
+      // WebP Images
+      if (config.webp) {
+        let webpStream = processImage(gulp.src(config.src, srcOptions))
+          .pipe(plumber({errorHandler: this.handleError}))
+          .pipe(webp(config.webpOptions || {}))
+        
+        if (config.verbose)
+          webpStream = webpStream.pipe(debug({title: '[WebP]'}))
+        
+        webpStream.pipe(gulp.dest(config.dest))
+        streams.push(webpStream)
+      }
+      
+      this.streams.image.push(streams)
+      
       cb()
+      // return mergeStream(streams);
     }
   }
   
@@ -285,7 +349,7 @@ export class Gulp
       let stream = gulp.src(config.src, config.srcOptions || {})
       
       // display processing view
-      if (config.verbose) stream = stream.pipe(gulpDebug({title: 'Processing View:'}))
+      if (config.verbose) stream = stream.pipe(debug({title: '[View]'}))
       
       // add gulp-file-include
       if (config.fileInclude) stream = stream.pipe(fileInclude(config.fileInclude))
@@ -295,20 +359,20 @@ export class Gulp
       
       // minify html
       if (config.minify) stream = stream.pipe(htmlMin(config.htmlMinOptions || {}))
-
+      
       // @todo add html beautifier // prettifier
-
+      
       // set gulp dest
       stream = stream.pipe(gulp.dest(config.dest, config.destOptions || {}))
-
+      
       // rename
       if (config.rename) {
         stream = stream.pipe(rename(config.renameOptions || {}))
         stream = stream.pipe(gulp.dest(config.dest, config.destOptions || {}))
       }
-
+      
       // keep the stream
-      this.streams.view.push(stream)
+      this.streams.view.push([stream])
       
       // gulp callback
       cb()
@@ -337,17 +401,76 @@ export class Gulp
       // set gulp src
       let stream = gulp.src(config.src, srcOptions)
       
-      // display processing view
-      if (config.verbose) stream = stream.pipe(gulpDebug({title: 'Processing Copy:'}))
+      // newer condition
+      if (config.newer) stream = stream.pipe(newer(config.newerOptions || {dest: config.dest.toString()}))
+      
+      // changed condition
+      if (config.changed) stream = stream.pipe(changed(config.dest.toString(), config.changedOptions || {}))
+      
+      // display copy
+      if (config.verbose) stream = stream.pipe(debug({title: '[Copy]'}))
       
       // set gulp dest
       stream = stream.pipe(gulp.dest(config.dest))
       
       // keep the stream
-      this.streams.copy.push(stream)
+      this.streams.copy.push([stream])
       
       // gulp callback
       cb()
+    }
+  }
+  
+  /**
+   * Compress files using gulp.
+   *
+   * @param {CopyConfigInterface} config - The configuration for the file compressing.
+   * @return {TaskFunction} - A function that can be used as a gulp task.
+   */
+  compress(config: any): TaskFunction {
+    this.injectGlobal(config, 'compress')
+    
+    return (cb: TaskFunctionCallback) => {
+      this.deleteDest(config)
+      
+      const streams: Array<NodeJS.ReadWriteStream> = []
+      
+      if (config.brotli) {
+        let brotliStream = gulp.src(config.src, config.srcOptions || {})
+          .pipe(plumber({errorHandler: this.handleError}))
+          .pipe(newer({
+            dest: config.dest.toString(),
+            map: (relativePath: string) => relativePath + '.br',
+          }))
+          .pipe(brotli.compress(config.brotliOptions || {}))
+          .pipe(rename(config.renameOptions || {extname: '.br'}))
+        
+        if (config.verbose) brotliStream = brotliStream.pipe(debug({title: '[Brotli]'}))
+        
+        brotliStream = brotliStream.pipe(gulp.dest(config.dest || config.src))
+        streams.push(brotliStream)
+      }
+      
+      if (config.gzip) {
+        let gzipStream = gulp.src(config.src, config.srcOptions || {})
+          .pipe(plumber({errorHandler: this.handleError}))
+          .pipe(newer({
+            dest: config.dest.toString(),
+            map: (relativePath: string) => relativePath + '.gz',
+          }))
+          .pipe(gzip(config.gzipOptions || {}))
+          .pipe(rename(config.renameOptions || {extname: '.gz'}))
+        
+        if (config.verbose) gzipStream = gzipStream.pipe(debug({title: '[Gzip]'}))
+        
+        gzipStream = gzipStream.pipe(gulp.dest(config.dest || config.src))
+        streams.push(gzipStream)
+      }
+      
+      this.streams.compress.push(streams)
+      
+      cb()
+      // return mergeStream(streams);
     }
   }
   
@@ -361,11 +484,15 @@ export class Gulp
    */
   streamBindBrowserSync(): void {
     Object.keys(this.streams).forEach((key: any) => {
-      this.streams[key as keyof StreamsInterface].forEach((el: NodeJS.ReadWriteStream, index: number) => {
+      this.streams[key as keyof StreamsInterface].forEach((streams: NodeJS.ReadWriteStream[], index: number) => {
         const config = this.config[key as keyof ConfigInterface]
         this.injectGlobal(config, key)
-        if (this.browserSyncInstance && Array.isArray(config) && config[index].watch) {
-          el.pipe(this.browserSyncInstance.stream())
+        if (Array.isArray(config) && config[index].watch) {
+          streams.forEach((stream: NodeJS.ReadWriteStream) => {
+            if (this.browserSyncInstance) {
+              stream.pipe(this.browserSyncInstance.stream())
+            }
+          })
         }
       })
     })
@@ -421,9 +548,9 @@ export class Gulp
   }
   
   getTaskPrefixes(): string[] {
-    const taskKeys = Object.keys(this.tasksFunctions);
-    const argvKeys = Object.keys(this.argv);
-    return argvKeys.filter(key => taskKeys.includes(key));
+    const taskKeys = Object.keys(this.tasksFunctions)
+    const argvKeys = Object.keys(this.argv)
+    return argvKeys.filter(key => taskKeys.includes(key))
   }
   
   /**
@@ -456,7 +583,7 @@ export class Gulp
       filteredTasks = this.tasks.filter((task) =>
         taskPrefixes.some((prefix) => task.startsWith(prefix)),
       )
-      if (filteredTasks.length === 0) filteredTasks = this.tasks;
+      if (filteredTasks.length === 0) filteredTasks = this.tasks
       if (this.config.global?.verbose) console.log(`Executing tasks with prefixes "${taskPrefixes.join(', ')}":`, filteredTasks)
     }
     else {
@@ -513,6 +640,6 @@ export class Gulp
       this.browserSyncInstance.init(this.config.serve?.browserSync || {})
       
       cb()
-    };
+    }
   }
 }
