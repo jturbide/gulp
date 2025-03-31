@@ -38,7 +38,9 @@ export default {
             preferBuiltins: true,
             browser: true,
         }),
-        commonjs(),
+        commonjs({
+            transformMixedEsModules: true,
+        }),
         json(),
         typescript({
             tsconfig: './tsconfig.json',
