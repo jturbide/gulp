@@ -21,7 +21,7 @@ import stripDebug from 'gulp-strip-debug'
 import terser from 'gulp-terser'
 import fileInclude from 'gulp-file-include'
 import localize from 'gulp-i18n-localize'
-import autoprefixer from 'gulp-autoprefixer'
+import autoprefixer from 'autoprefixer'
 import rename from 'gulp-rename'
 import uglify from 'gulp-uglify'
 import htmlMin from 'gulp-htmlmin'
@@ -125,17 +125,19 @@ export class Gulp
       // execute dart sass
       stream = stream.pipe(dartSass.sync(config.compilerOptions || {}).on('error', dartSass.logError))
       
+      const postCssPlugins = [...this.postCss]
+
       // automatically add prefixes
-      if (config.autoprefixer) this.postCss.push(autoprefixer())
+      if (config.autoprefixer) postCssPlugins.push(autoprefixer())
       
       // minify the css
-      if (config.minify) this.postCss.push(cssnano())
+      if (config.minify) postCssPlugins.push(cssnano())
       
       // sort media queries
-      if (config.sortMediaQueries) this.postCss.push(sortMediaQueries())
+      if (config.sortMediaQueries) postCssPlugins.push(sortMediaQueries())
       
       // execute post-css
-      stream = stream.pipe(postcss(this.postCss))
+      stream = stream.pipe(postcss(postCssPlugins))
       
       if (config.concat) {
         // force dependencies correct order

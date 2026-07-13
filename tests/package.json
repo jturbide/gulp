@@ -23,9 +23,8 @@
     "@types/slick-carousel": "^1.6.40",
     "bootstrap": "^5.3.3",
     "jquery": "^3.7.1",
+    "jturbide-gulp": "link:..",
     "slick-carousel": "^1.8.1"
   },
-  "dependencies": {
-    "jturbide-gulp": "file:.yalc/jturbide-gulp"
-  }
+  "dependencies": {}
 }

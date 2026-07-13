@@ -2,8 +2,9 @@
   "version": "v1",
   "packages": {
     "jturbide-gulp": {
-      "signature": "f948d69bb0e60f94554b3319944398e9",
-      "file": true
+      "signature": "72b59c343cdf3154abe13d783cdb3feb",
+      "file": true,
+      "replaced": "link:.."
     }
   }
 }
