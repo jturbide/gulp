@@ -43,6 +43,7 @@ const gulp = new Gulp({
         watch: true,
         optimize: true,
         sass: {
+            autoprefixer: true,
             sortMediaQueries: false,
             compilerOptions: {
                 silenceDeprecations: ['mixed-decls'],
