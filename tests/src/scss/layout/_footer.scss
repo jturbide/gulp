@@ -1,8 +1,11 @@
+@use 'sass:color';
+@use 'variables' as *;
+
 // Footer Styles
 $footer-background-color: $background-color;
 $footer-text-color: $primary-color;
 $footer-link-color: #ff6347;
-$footer-link-hover-color: lighten($footer-link-color, 10%);
+$footer-link-hover-color: color.adjust($footer-link-color, $lightness: 10%);
 $footer-padding: 20px;
 $footer-text-size: 14px;
 

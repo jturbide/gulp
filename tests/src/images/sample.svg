@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-labelledby="title description">
+  <title id="title">Abstract build fixture</title>
+  <desc id="description">A simple geometric illustration used to test image processing.</desc>
+  <rect width="640" height="360" fill="#172554"/>
+  <circle cx="180" cy="180" r="120" fill="#38bdf8"/>
+  <path d="M330 80h220v200H330z" fill="#facc15"/>
+  <path d="m365 245 75-130 75 130z" fill="#f97316"/>
+</svg>

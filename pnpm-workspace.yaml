@@ -1,0 +1,12 @@
+packages:
+  - tests
+
+allowBuilds:
+  '@parcel/watcher': true
+  core-js: false
+  cwebp-bin: true
+  es5-ext: false
+  gifsicle: true
+  mozjpeg: true
+  optipng-bin: true
+  sharp: true

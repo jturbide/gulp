@@ -142,3 +142,13 @@ yarn.lock
 
 # jetbrain
 .idea/
+
+# OS and local credentials
+.DS_Store
+Thumbs.db
+.npmrc
+!.npmrc.example
+*.pem
+*.key
+*.p12
+*.pfx

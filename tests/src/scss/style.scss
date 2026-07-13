@@ -1,7 +1,7 @@
-@import 'layout/variables';
-@import 'layout/layout';
-@import 'layout/menu';
-@import 'layout/footer';
+@use 'layout/variables';
+@use 'layout/layout';
+@use 'layout/menu';
+@use 'layout/footer';
 
 body {
   font-family: Arial, sans-serif;

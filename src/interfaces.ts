@@ -42,14 +42,14 @@ interface SrcDestInterface extends DebugVerboseInterface
   srcOptions?: SrcOptions,
   dest: string | ((file: File) => string),
   destOptions?: DestOptions,
-  watch: boolean | string,
-  delete: boolean | string | string[],
+  watch?: boolean | string,
+  delete?: boolean | string | string[],
   deleteOptions?: DeleteAsyncOptions,
-  rename: boolean,
+  rename?: boolean,
   renameOptions?: GulpRenameOptions,
-  newer: boolean,
+  newer?: boolean,
   newerOptions?: GulpNewerOptions,
-  changed: boolean,
+  changed?: boolean,
   changedOptions?: GulpChangedOptions,
 }
 
@@ -64,15 +64,15 @@ interface CompressConfigInterface extends SrcDestInterface
 interface AssetConfigInterface extends SrcDestInterface, CompressConfigInterface
 {
   concat?: string,
-  minify: boolean,
-  stripDebug: boolean,
+  minify?: boolean,
+  stripDebug?: boolean,
   depOrder?: boolean,
-  autoprefixer: boolean,
-  sortMediaQueries: boolean
+  autoprefixer?: boolean,
+  sortMediaQueries?: boolean
   sourceMaps?: {
     enable: boolean;
-    initOptions: InitOptions,
-    writeOptions: WriteOptions,
+    initOptions?: InitOptions,
+    writeOptions?: WriteOptions,
     writePath?: string
   }
 }
@@ -93,22 +93,22 @@ interface JsConfigInterface extends AssetConfigInterface
 
 interface ImageConfigInterface extends SrcDestInterface
 {
-  webp: boolean,
+  webp?: boolean,
   webpOptions?: GulpWebpOptions,
-  avif: boolean,
+  avif?: boolean,
   avifOptions?: GulpAvifOptions,
-  imagemin: boolean,
+  imagemin?: boolean,
   imageminOptions?: GulpImageMinOptions,
   imageminOptimizers?: GulpImageMinOptimizers,
 }
 
 interface ViewConfigInterface extends SrcDestInterface
 {
-  minify: boolean,
-  htmlMinOptions: HTMLMinifier.Options,
+  minify?: boolean,
+  htmlMinOptions?: HTMLMinifier.Options,
   fileInclude?: {
-    basePath: string,
-    prefix: string,
+    basepath?: string,
+    prefix?: string,
   }
   localize?: {
     locales: string[];

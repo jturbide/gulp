@@ -1,5 +1,7 @@
+@use 'sass:color';
+
 // Define colors
 $primary-color: #333;
 $secondary-color: #545454;
 $background-color: #eee;
-$hover-color: darken($secondary-color, 10%);
+$hover-color: color.adjust($secondary-color, $lightness: -10%);

@@ -6,14 +6,12 @@ const dist = './dist/'
 const nodeModules = './node_modules/'
 
 const sassVendors = [
-    nodeModules + 'bootstrap/scss/**/*',
     nodeModules + 'slick-carousel/slick/slick.scss',
     nodeModules + 'slick-carousel/slick/slick-theme.scss',
 ]
 
 const jsVendors = [
     nodeModules + 'jquery/dist/jquery.js',
-    nodeModules + 'bootstrap/dist/js/bootstrap.bundle.js',
     nodeModules + 'slick-carousel/slick/slick.js',
 ]
 
@@ -36,7 +34,7 @@ const gulp = new Gulp({
     global: {
         delete: true,
         debug: false,
-        verbose: true,
+        verbose: false,
         minify: true,
         depOrder: true,
         combine: true,
@@ -46,7 +44,8 @@ const gulp = new Gulp({
             autoprefixer: true,
             sortMediaQueries: false,
             compilerOptions: {
-                silenceDeprecations: ['mixed-decls'],
+                quietDeps: true,
+                silenceDeprecations: ['legacy-js-api', 'global-builtin'],
                 outputStyle: 'compressed',
             },
             sourceMaps: {

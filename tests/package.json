@@ -1,13 +1,10 @@
 {
-  "name": "zoey-adventure",
+  "name": "jturbide-gulp-demo",
   "version": "1.0.0",
-  "description": "Zoey's Adventure",
-  "author": "Zoey",
-  "license": "ISC",
+  "description": "Integration fixture for jturbide-gulp.",
+  "private": true,
+  "license": "BSD-3-Clause",
   "type": "module",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "gulp build",
     "watch": "gulp watch",
@@ -18,12 +15,10 @@
     "> 2%"
   ],
   "devDependencies": {
-    "@types/bootstrap": "^5.2.10",
     "@types/jquery": "^3.5.30",
     "@types/slick-carousel": "^1.6.40",
-    "bootstrap": "^5.3.3",
     "jquery": "^3.7.1",
-    "jturbide-gulp": "link:..",
+    "jturbide-gulp": "workspace:*",
     "slick-carousel": "^1.8.1"
   },
   "dependencies": {}
