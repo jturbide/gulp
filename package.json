@@ -97,7 +97,7 @@
     "gulp-uglify": "^3.0.2",
     "gulp-webp": "^5.0.0",
     "minimist": "^1.2.8",
-    "postcss": "^8.4.41",
+    "postcss": "^8.5.23",
     "postcss-sort-media-queries": "^5.2.0"
   },
   "devDependencies": {
